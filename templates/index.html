@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sahayak</title>
+    <style>
+        body { font-family: Arial; text-align: center; background: #121212; color: white; }
+        .mic-btn { font-size: 50px; cursor: pointer; margin-top: 50px; background: none; border: none; }
+    </style>
+</head>
+<body>
+    <h1>🎙️ AI Sahayak</h1>
+    <p id="status">Tap the mic to speak</p>
+    <button class="mic-btn" onclick="startRecognition()">🎤</button>
+    <div id="response" style="margin-top: 20px; padding: 10px;"></div>
+
+    <script>
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'hi-IN';
+
+        function startRecognition() {
+            recognition.start();
+            document.getElementById('status').innerText = "Sun raha hoon...";
+        }
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById('status').innerText = "Aapne kaha: " + transcript;
+            
+            fetch('/ask', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: transcript})
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('response').innerText = data.reply;
+                const utterance = new SpeechSynthesisUtterance(data.reply);
+                window.speechSynthesis.speak(utterance);
+            });
+        };
+    </script>
+</body>
+</html>
